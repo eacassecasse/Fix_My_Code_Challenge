@@ -1,8 +1,9 @@
 #!/usr/bin/python3
+""" Square module to fix """
 
 
 class Square():
-
+    """ Defines a square shape """
     width = 0
     height = 0
 
