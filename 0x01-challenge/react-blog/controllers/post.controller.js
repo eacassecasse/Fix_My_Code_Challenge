@@ -9,13 +9,21 @@ exports.showAllPosts = function(req,res,next){
     pageNum -= 1;
 
     request.get(config.baseUrl+'/static/posts.json',function(err,response){
+	if (err) {
+		return next(err);
+	}
+
         var itemsPerPage = config.itemsPerPage;
+	var totalPosts = response.body.posts.length;
+	var totalPages = Math.ceil(totalPosts / itemsPerPage);
         res.locals.data = {
             "AllPostStore" : {
                "postsByPage" : {
                },
                "numberOfPosts": response.body.posts.length,
-               "postListContent": response.body.postListContent
+               "postListContent": response.body.postListContent,
+		"totalPages": totalPages,
+		"currentPage": pageNum + 1
             }
         };
 
@@ -27,9 +35,27 @@ exports.showAllPosts = function(req,res,next){
 }
 
 exports.loadPostsViaAjax = function(req,res){
-    request.get(config.baseUrl+'/static/posts.json',function(err,response){
-        res.json(response.body.posts);
-    });
+	var pageNum = parseInt(req.query.pageNum || 1);
+	pageNum =- 1;
+
+    	request.get(config.baseUrl+'/static/posts.json',function(err,response){
+        	if (err) {
+			return res.status(500).json({ error: err.message });
+		}
+
+		var itemsPerPage = config.itemsPerPage;
+        	var totalPosts = response.body.posts.length;
+        	var totalPages = Math.ceil(totalPosts / itemsPerPage);
+
+        	var paginatedPosts = response.body.posts.slice(itemsPerPage * pageNum, (itemsPerPage * pageNum) + itemsPerPage);
+
+        	res.json({
+            		posts: paginatedPosts,
+            		totalPosts: totalPosts,
+            		totalPages: totalPages,
+            		currentPage: pageNum + 1
+        	});
+	});
 }
 
 exports.showSinglePost = function(req,res,next){
